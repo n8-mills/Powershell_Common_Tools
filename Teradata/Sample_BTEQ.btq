@@ -1,0 +1,50 @@
+-- =========================================================================
+--  
+-- Purpose     : Extracts data from Teradata to flat file.  
+-- Comments    : Everything between and including curly braces (ex: "{outfile}") 
+--		 to be replaced via shell scripting (PowerShell) with valid values
+-- 
+-- Author      : Nate Mills
+-- Department  : Space Force
+-- Version     : 1.0
+--  -------------------------------------------------------------------------
+--  History:
+--  Name             Date        Comments
+--  ---------------- ----------- --------------------------------------------
+--  N. Mills   	     2023.07.11  Initial version 
+-- =========================================================================
+
+-- =========================================================================
+-- INITIAL BTEQ SETTINGS:
+-- =========================================================================
+
+.errorout STDOUT;
+.maxerror 100;
+.set sessions 8;
+.set errorlevel 3807 severity 0;
+.WIDTH 500;
+
+-- =========================================================================
+-- LOGON TO TERADATA.
+-- =========================================================================
+-- .logmech LDAP;
+.logon {TD_server}/{TD_creds};
+.QUIET ON
+.EXPORT FILE = {outfile};
+.SET SEPARATOR '{separator}'
+.SET NULL AS '' -- Excluding this will result in question marks populating the null fields
+.SET TITLEDASHES OFF -- Exluding this will add a row of dashes between the header and data
+
+-- =========================================================================
+-- Run
+-- =========================================================================
+
+{qry}
+
+.IF ERRORCODE <> 0 THEN .GOTO EXIT_ERROR;
+
+.LABEL EXIT_ERROR;
+
+.LOGOFF;
+
+.QUIT 99;

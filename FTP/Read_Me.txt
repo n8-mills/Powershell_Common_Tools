@@ -1,0 +1,1 @@
+Requires the installation of WinSCP.

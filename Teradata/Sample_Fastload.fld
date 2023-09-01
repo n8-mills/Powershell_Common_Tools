@@ -1,0 +1,61 @@
+-- =========================================================================
+--  
+-- Purpose     : Uploads a flat file to Teradata.  
+-- Comments    : Everything between and including curly braces (ex: "{outfile}") 
+--		 to be replaced via shell scripting (PowerShell) with valid values
+-- 
+-- Author      : Nate Mills
+-- Department  : Space Force
+-- Version     : 1.0
+--  -------------------------------------------------------------------------
+--  History:
+--  Name             Date        Comments
+--  ---------------- ----------- --------------------------------------------
+--  N. Mills   	     2023.07.27  Initial version 
+-- =========================================================================
+
+-- =========================================================================
+-- INITIAL FLD SETTINGS:
+-- =========================================================================
+
+sessions 25;
+-- LDAP is using windows login.  If this doesn't work, use .LOGON
+--.logmech LDAP;
+
+.LOGON {td_server}/{TD_creds};
+
+--Ignore "table does not exist" errors when dropping
+.SET ERRORLEVEL 3807 SEVERITY 0
+
+--Drop tables
+DROP TABLE {td_db}.{tbl_name};
+DROP TABLE {td_db}.{err1};
+DROP TABLE {td_db}.{err2};
+
+{tbl_Create};
+
+Database {td_db};
+SET RECORD VARTEXT '{separator}';
+
+define
+{tbl_def};
+
+FILE={file_name};
+
+BEGIN LOADING {td_db}.{tbl_name} ERRORFILES {td_db}.{err1}, {td_db}.{err2};
+
+checkpoint 100000;
+
+
+INSERT INTO {td_db}.{tbl_name}
+(
+{insert_pt1}
+)
+VALUES
+(
+{insert_pt2}
+);
+
+END LOADING;
+LOGOFF;
+quit;
